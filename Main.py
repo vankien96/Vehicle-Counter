@@ -58,7 +58,7 @@ cap = cv2.VideoCapture("D:/ThiGiacMayTinh/Motobike counter/Vehicle-Counter/count
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter(
-    "D:/ThiGiacMayTinh/Motobike counter/Vehicle-Counter/output2.avi", fourcc, 10.0, (1280, 720))
+    "D:/ThiGiacMayTinh/Motobike counter/Vehicle-Counter/output3.avi", fourcc, 15.0, (1280, 720))
 
 ret = True
 count = 0
