@@ -54,11 +54,11 @@ def load_image_into_numpy_array(image):
   return np.nsarray(image).astype(np.uint8)
 
 
-cap = cv2.VideoCapture("C:/Users/Admin/Desktop/Demo/count3.TS")
+cap = cv2.VideoCapture("D:/ThiGiacMayTinh/Motobike counter/Vehicle-Counter/count.mp4")
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter(
-    "C:/Users/Admin/Desktop/Demo/output3.avi", fourcc, 10.0, (1280, 720))
+    "D:/ThiGiacMayTinh/Motobike counter/Vehicle-Counter/output2.avi", fourcc, 10.0, (1280, 720))
 
 ret = True
 count = 0
