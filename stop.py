@@ -12,6 +12,7 @@ import math
 import CentroidTracker
 import Draw as draw
 import CheckMoto
+from collections import OrderedDict
 
 from collections import defaultdict
 from io import StringIO
@@ -54,16 +55,29 @@ def load_image_into_numpy_array(image):
   return np.nsarray(image).astype(np.uint8)
 
 
-cap = cv2.VideoCapture("D:/ThiGiacMayTinh/Motobike counter/Vehicle-Counter/count.mp4")
+cap = cv2.VideoCapture("D:/ThiGiacMayTinh/Motobike counter/Vehicle-Counter/demo.ts")
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter(
-    "D:/ThiGiacMayTinh/Motobike counter/Vehicle-Counter/output3.avi", fourcc, 15.0, (1280, 720))
+    "D:/ThiGiacMayTinh/Motobike counter/Vehicle-Counter/stop.avi", fourcc, 15.0, (1280, 720))
+
+def calculateDistance(location_array):
+    total_distance_ver = 0
+    total_distance_hor = 0
+    for i in range(len(location_array) - 1):
+        total_distance_ver += abs(location_array[i][1] - location_array[i + 1][1])
+        total_distance_hor += abs(location_array[i][0] - location_array[i + 1][0])
+
+    # check 2 trường hợp, chạy ngang và chạy dọc
+    return max(total_distance_ver/(len(location_array) - 1), total_distance_hor/(len(location_array) - 1))
 
 ret = True
 count = 0
 ct = CentroidTracker.CentroidTracker()
 counted_object_id = []
+
+location_object = OrderedDict()
+
 with detection_graph.as_default():
     with tf.Session(graph=detection_graph) as sess:
       # Definite input and output Tensors for detection_graph
@@ -98,7 +112,6 @@ with detection_graph.as_default():
               line_thickness=1,
               skip_labels=True)
 
-        center_image = draw.draw_line(image_np)
         rects = []
         for box, color in box_to_color_map.items():
           ymin, xmin, ymax, xmax = box
@@ -111,22 +124,31 @@ with detection_graph.as_default():
 
         objects = ct.update(rects)
 
+        #Lưu lại location của xe đó trong khoảng 10 frame
         for (objectID, centroid) in objects.items():
-          draw.put_objectID_into_object(image_np, centroid, objectID)
-          if CheckMoto.check_can_count_object((objectID, centroid), center_image, counted_object_id):
-            count += 1
-            draw.put_number_moto(image_np, count)
-            counted_object_id.append(objectID)
+            # draw.put_objectID_into_object(image_np, centroid, objectID)
+            if objectID not in location_object:
+                location_object[objectID] = [centroid]
+            else:
+                if len(location_object[objectID]) >= 10:
+                    del location_object[objectID][0]
+                else:
+                    location_object[objectID].append(centroid)
+            
+        # Kiểm tra nếu độ dịch chuyển của xe đó < 2 thì là đang dừng 
+        for (objectID, data) in objects.items():
+            data = location_object[objectID]
+            if len(data) > 5:
+                distance = calculateDistance(data)
+                # print(distance)
+                if distance < 2:
+                    print(objectID)
+                    draw.put_objectID_into_object(image_np, data[-1], "stop")
+         
           
-        will_deregister_object = CheckMoto.check_object_can_deregister(objects, center_image)
-        for objectID in will_deregister_object:
-          if objectID in counted_object_id:
-            ct.deregister(objectID)
 
-
-        draw.put_number_moto(image_np, count)
         cv2.imshow("image", image_np)
-        # out.write(image_np)
+        out.write(image_np)
         if cv2.waitKey(1) == 13:
           break
 cap.release()

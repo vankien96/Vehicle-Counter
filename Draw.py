@@ -13,4 +13,4 @@ def put_number_moto(image, count):
 
 def put_objectID_into_object(image, centroid, objectID):
     text = "{}".format(objectID)
-    cv2.putText(image, text, (centroid[0], centroid[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    cv2.putText(image, text, (centroid[0], centroid[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
